@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "@node-saml/node-saml": "^5.0.0",
+    "@node-saml/passport-saml": "^5.0.0",
+    "axios": "^1.7.7",
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "https": "^1.0.0",
+    "passport": "^0.7.0"
+  },
+  "name": "saml-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "Brandon Herrin",
+  "license": "ISC",
+  "type": "module"
+}
