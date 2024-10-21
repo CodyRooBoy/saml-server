@@ -14,9 +14,9 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const privateKey = fs.readFileSync('ssl_certs/key.pem', 'utf8');
-const certificate = fs.readFileSync('ssl_certs/cert.pem', 'utf8');
-const idpCertificate = fs.readFileSync('saml_certs/cert.cer', 'utf8');
+const privateKey = fs.readFileSync('key.pem', 'utf8');
+const certificate = fs.readFileSync('cert.pem', 'utf8');
+const idpCertificate = fs.readFileSync('cert.cer', 'utf8');
 
 const PORT = process.env.PORT || 8000;
 
