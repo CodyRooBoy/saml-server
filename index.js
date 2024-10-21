@@ -18,6 +18,8 @@ const privateKey = fs.readFileSync('ssl_certs/key.pem', 'utf8');
 const certificate = fs.readFileSync('ssl_certs/cert.pem', 'utf8');
 const idpCertificate = fs.readFileSync('saml_certs/cert.cer', 'utf8');
 
+const PORT = process.env.PORT || 8000;
+
 const credentials = { key: privateKey, cert: certificate };
 
 const samlConfig = {
@@ -53,13 +55,48 @@ passport.deserializeUser(function(user, done) {
 });
 
 app.get('/', (req, res) => {
-    res.redirect('/login');
+    const serverStatus = {
+        status: 'Running',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        port: PORT,
+    };
+
+    res.send(`
+        <html>
+            <head>
+                <title>Server Status Dashboard</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h1 { color: #333; }
+                    p { font-size: 16px; }
+                </style>
+            </head>
+            <body>
+                <h1>Server Status Dashboard</h1>
+                <p>Status: ${serverStatus.status}</p>
+                <p>Timestamp: ${serverStatus.timestamp}</p>
+                <p>Uptime: ${Math.floor(serverStatus.uptime)} seconds</p>
+                <p>Host: ${process.env.HOST}</p>
+                <p>Port: ${serverStatus.port}</p> <!-- Display the port -->
+            </body>
+        </html>
+    `);
 });
 
+// Expected Query Strings: { redirect, returnUrl }
 app.get('/login', (req, res, next) => {
-    const relayState = req.query.redirect ||  'http://localhost:3000/';
-    req.session.relayState = relayState;
-    passport.authenticate('saml', { passReqToCallback: true, successMessage: true, failureRedirect: '/' })(req, res, next);
+    const redirect = req.query.redirect;
+    const returnUrl = req.query.returnUrl;
+
+    if (!redirect || !returnUrl) {
+        return res.status(400).json({ error: 'Missing required query strings: redirect and returnUrl' });
+    }
+
+    req.session.redirect = redirect;
+    req.session.returnUrl = returnUrl;
+
+    passport.authenticate('saml', { passReqToCallback: true, successMessage: true, failureRedirect: redirect })(req, res, next);
 });
 
 app.post('/login/callback', async function(req, res) {
@@ -67,16 +104,14 @@ app.post('/login/callback', async function(req, res) {
     const decodedSamlResponse = Buffer.from(samlResponse, 'base64').toString('utf8');
 
     try {
-        const response = await axios.post('http://localhost:3000/api/sso', decodedSamlResponse, {
+        const response = await axios.post(req.session.returnUrl, decodedSamlResponse, {
             headers: {
                 'Content-Type': 'application/xml',
             },
         });
 
-        console.log('Response from Next.js server:', response.data);
-
-        const relayState = req.session.relayState || 'http://localhost:3000/';
-        res.redirect(relayState);
+        const redirectUrl = req.session.redirect;
+        res.redirect(redirectUrl);
     } catch (error) {
         console.error('Error sending XML:', error.message);
         res.status(500).send('Error processing SAML response.');
@@ -86,5 +121,5 @@ app.post('/login/callback', async function(req, res) {
 const httpsServer = https.createServer(credentials, app);
 
 httpsServer.listen(process.env.PORT, () => {
-    console.log(`HTTPS Server running on https://localhost:${process.env.PORT}`);
+    console.log(`HTTPS Server running on ${process.env.HOST}:${PORT}`);
 });
