@@ -133,5 +133,5 @@ dist
 *.cer
 *.pem
 
-!saml_certs/*
-!ssl_certs/*
+!saml_certs/
+!ssl_certs/
