@@ -120,6 +120,6 @@ app.post('/login/callback', async function(req, res) {
 
 const httpsServer = https.createServer(credentials, app);
 
-httpsServer.listen(process.env.PORT, () => {
+httpsServer.listen(PORT, '0.0.0.0', () => {
     console.log(`HTTPS Server running on ${process.env.HOST}:${PORT}`);
 });
