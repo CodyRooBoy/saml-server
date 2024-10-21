@@ -129,8 +129,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-!saml_certs/
-!ssl_certs/
 # Certificates
 *.cer
 *.pem
+
+!saml_certs/*
+!ssl_certs/*
+
